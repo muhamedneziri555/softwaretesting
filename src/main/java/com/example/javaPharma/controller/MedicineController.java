@@ -44,16 +44,23 @@ public class MedicineController {
         return medicineService.getMedicineById(id);
     }
 
-    @Operation(summary = "Search medicines by name", description = "Search for medicines by their name")
+    @Operation(summary = "Search medicines", description = "Search for medicines by name or category")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Successfully found matching medicines"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/search")
-    public List<Medicine> searchMedicineByName(
-            @Parameter(description = "Name to search for", required = true)
-            @RequestParam String name) {
-        return medicineService.searchByName(name);
+    public List<Medicine> searchMedicine(
+            @Parameter(description = "Name to search for", required = false)
+            @RequestParam(required = false) String name,
+            @Parameter(description = "Category to search for", required = false)
+            @RequestParam(required = false) String category) {
+        if (name != null && !name.isEmpty()) {
+            return medicineService.searchByName(name);
+        } else if (category != null && !category.isEmpty()) {
+            return medicineService.searchByCategory(category);
+        }
+        return medicineService.getAllMedicines();
     }
 
     @Operation(summary = "Search medicines by manufacturer", description = "Search for medicines by their manufacturer")
