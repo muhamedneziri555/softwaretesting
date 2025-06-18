@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,8 +28,9 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping
-    public List<Medicine> getAllMedicines() {
-        return medicineService.getAllMedicines();
+    public ResponseEntity<List<Medicine>> getAllMedicines() {
+        List<Medicine> medicines = medicineService.getAllMedicines();
+        return ResponseEntity.ok(medicines);
     }
 
     @Operation(summary = "Get medicine by ID", description = "Retrieves a specific medicine by its ID")
@@ -38,10 +40,11 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/{id}")
-    public Medicine getMedicineById(
+    public ResponseEntity<Medicine> getMedicineById(
             @Parameter(description = "ID of the medicine to retrieve", required = true)
             @PathVariable Long id) {
-        return medicineService.getMedicineById(id);
+        Medicine medicine = medicineService.getMedicineById(id);
+        return ResponseEntity.ok(medicine);
     }
 
     @Operation(summary = "Search medicines", description = "Search for medicines by name or category")
@@ -50,17 +53,20 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/search")
-    public List<Medicine> searchMedicine(
+    public ResponseEntity<List<Medicine>> searchMedicine(
             @Parameter(description = "Name to search for", required = false)
             @RequestParam(required = false) String name,
             @Parameter(description = "Category to search for", required = false)
             @RequestParam(required = false) String category) {
+        List<Medicine> medicines;
         if (name != null && !name.isEmpty()) {
-            return medicineService.searchByName(name);
+            medicines = medicineService.searchByName(name);
         } else if (category != null && !category.isEmpty()) {
-            return medicineService.searchByCategory(category);
+            medicines = medicineService.searchByCategory(category);
+        } else {
+            medicines = medicineService.getAllMedicines();
         }
-        return medicineService.getAllMedicines();
+        return ResponseEntity.ok(medicines);
     }
 
     @Operation(summary = "Search medicines by manufacturer", description = "Search for medicines by their manufacturer")
@@ -69,10 +75,11 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/searchManufacturer")
-    public List<Medicine> searchByManufacturer(
+    public ResponseEntity<List<Medicine>> searchByManufacturer(
             @Parameter(description = "Manufacturer name to search for", required = true)
             @RequestParam String manufacturer) {
-        return medicineService.searchByManufacturer(manufacturer);
+        List<Medicine> medicines = medicineService.searchByManufacturer(manufacturer);
+        return ResponseEntity.ok(medicines);
     }
 
     @Operation(summary = "Search medicines by creation date", description = "Search for medicines by their creation date")
@@ -81,10 +88,11 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/searchDateCreated")
-    public List<Medicine> searchByDateCreated(
+    public ResponseEntity<List<Medicine>> searchByDateCreated(
             @Parameter(description = "Creation date to search for", required = true)
             @RequestParam String date) {
-        return medicineService.searchByDateCreated(date);
+        List<Medicine> medicines = medicineService.searchByDateCreated(date);
+        return ResponseEntity.ok(medicines);
     }
 
     @Operation(summary = "Search medicines by expiry date", description = "Search for medicines by their expiry date")
@@ -93,10 +101,11 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/searchExpiryDate")
-    public List<Medicine> searchByExpiryDate(
+    public ResponseEntity<List<Medicine>> searchByExpiryDate(
             @Parameter(description = "Expiry date to search for", required = true)
             @RequestParam String expdate) {
-        return medicineService.searchByExpiryDate(expdate);
+        List<Medicine> medicines = medicineService.searchByExpiryDate(expdate);
+        return ResponseEntity.ok(medicines);
     }
 
     @Operation(summary = "Create new medicine", description = "Creates a new medicine with all its details")
@@ -106,10 +115,11 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PostMapping
-    public Medicine createMedicine(
+    public ResponseEntity<Medicine> createMedicine(
             @Parameter(description = "Medicine details including category, manufacturer, and dates", required = true)
             @RequestBody CreateMedicineRequest medicine) {
-        return medicineService.saveMedicine(medicine);
+        Medicine createdMedicine = medicineService.saveMedicine(medicine);
+        return ResponseEntity.ok(createdMedicine);
     }
 
     @Operation(summary = "Update medicine", description = "Updates an existing medicine by its ID")
@@ -120,26 +130,26 @@ public class MedicineController {
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @PutMapping("/{id}")
-    public Medicine updateMedicine(
+    public ResponseEntity<Medicine> updateMedicine(
             @Parameter(description = "ID of the medicine to update", required = true)
             @PathVariable Long id,
             @Parameter(description = "Updated medicine details", required = true)
             @RequestBody CreateMedicineRequest medicine) {
-        var existingMedicine = medicineService.getMedicineById(id);
-        existingMedicine.setName(medicine.getName());
-        return medicineService.saveMedicine(medicine);
+        Medicine updatedMedicine = medicineService.updateMedicine(id, medicine);
+        return ResponseEntity.ok(updatedMedicine);
     }
 
     @Operation(summary = "Delete medicine", description = "Deletes a medicine by its ID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully deleted the medicine"),
+        @ApiResponse(responseCode = "204", description = "Successfully deleted the medicine"),
         @ApiResponse(responseCode = "404", description = "Medicine not found"),
         @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/{id}")
-    public void deleteMedicine(
+    public ResponseEntity<Void> deleteMedicine(
             @Parameter(description = "ID of the medicine to delete", required = true)
             @PathVariable Long id) {
         medicineService.deleteMedicine(id);
+        return ResponseEntity.noContent().build();
     }
 }

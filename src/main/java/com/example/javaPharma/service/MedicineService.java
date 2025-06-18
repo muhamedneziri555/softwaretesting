@@ -24,5 +24,9 @@ public interface MedicineService {
 
     Medicine saveMedicine(CreateMedicineRequest medicine);
 
+    Medicine updateMedicine(Long id, CreateMedicineRequest medicine);
+
     void deleteMedicine(Long id);
+
+    boolean existsById(Long id);
 }
